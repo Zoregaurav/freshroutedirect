@@ -67,7 +67,7 @@ const Navbar = () => {
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-accent/30 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <img
-                src="/src/assets/logo.jpg"
+                src="/logo.jpg"
                 alt="FreshRoute Logo"
                 className="relative h-12 w-12 rounded-xl group-hover:scale-110 transition-all duration-300 shadow-lg object-cover border border-primary/20"
               />

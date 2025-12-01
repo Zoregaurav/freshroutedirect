@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
-import logo from "@/assets/logo.jpg";
+
 
 const Footer = () => {
   return (
@@ -17,8 +17,8 @@ const Footer = () => {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <img 
-                src={logo} 
-                alt="GreenHarvest Logo" 
+                src="/logo.jpg" 
+                alt="FreshrouteLogo" 
                 className="h-10 w-10 rounded-lg object-cover"
               />
               <span className="text-2xl font-bold">FreshRoute</span>
