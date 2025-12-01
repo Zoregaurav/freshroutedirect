@@ -9,10 +9,16 @@ import { Mail, Phone, MapPin, Leaf, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-
+interface FormData {
+  name: string;
+  email: string;
+  phone: string;
+  subject: string;
+  message: string;
+}
 
 const Contact = () => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     name: "",
     email: "",
     phone: "",
@@ -23,56 +29,48 @@ const Contact = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Handle input changes
+  const handleInputChange = (field: keyof FormData, value: string) => {
+    setFormData({ ...formData, [field]: value });
+    if (errors[field]) setErrors({ ...errors, [field]: "" });
+  };
+
+  // Form validation
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.name.trim()) {
-      newErrors.name = "Name is required";
-    } else if (formData.name.trim().length < 2) {
+    if (!formData.name.trim()) newErrors.name = "Name is required";
+    else if (formData.name.trim().length < 2)
       newErrors.name = "Name must be at least 2 characters";
-    } else if (formData.name.trim().length > 100) {
+    else if (formData.name.trim().length > 100)
       newErrors.name = "Name cannot exceed 100 characters";
-    }
 
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    if (!formData.email.trim()) newErrors.email = "Email is required";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
       newErrors.email = "Please enter a valid email address";
-    }
 
     if (formData.phone.trim()) {
-      if (!/^[0-9\s\-\+\(\)]{7,}$/.test(formData.phone)) {
+      if (!/^[0-9\s\-\+\(\)]{7,}$/.test(formData.phone))
         newErrors.phone = "Please enter a valid phone number";
-      }
     }
 
-    if (!formData.subject.trim()) {
-      newErrors.subject = "Subject is required";
-    } else if (formData.subject.trim().length < 3) {
+    if (!formData.subject.trim()) newErrors.subject = "Subject is required";
+    else if (formData.subject.trim().length < 3)
       newErrors.subject = "Subject must be at least 3 characters";
-    } else if (formData.subject.trim().length > 100) {
+    else if (formData.subject.trim().length > 100)
       newErrors.subject = "Subject cannot exceed 100 characters";
-    }
 
-    if (!formData.message.trim()) {
-      newErrors.message = "Message is required";
-    } else if (formData.message.trim().length < 10) {
+    if (!formData.message.trim()) newErrors.message = "Message is required";
+    else if (formData.message.trim().length < 10)
       newErrors.message = "Message must be at least 10 characters";
-    } else if (formData.message.trim().length > 5000) {
+    else if (formData.message.trim().length > 5000)
       newErrors.message = "Message cannot exceed 5000 characters";
-    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData({ ...formData, [field]: value });
-    if (errors[field]) {
-      setErrors({ ...errors, [field]: "" });
-    }
-  };
-
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -84,29 +82,25 @@ const Contact = () => {
     setIsSubmitting(true);
 
     try {
+      // Save to Supabase
       const { error: dbError } = await supabase
         .from("contact_submissions")
-        .insert([
-          {
-            name: formData.name.trim(),
-            email: formData.email.trim(),
-            phone: formData.phone.trim(),
-            subject: formData.subject.trim(),
-            message: formData.message.trim(),
-          }
-        ]);
+        .insert([formData]);
 
       if (dbError) throw dbError;
 
+      // Send to Web3Forms
       const web3FormData = new FormData();
-     web3FormData.append("access_key", import.meta.env.VITE_WEB3FORMS_KEY);
-      web3FormData.append("from_name", formData.name.trim());
-      web3FormData.append("from_email", formData.email.trim());
-      web3FormData.append("phone", formData.phone.trim());
-      web3FormData.append("subject", formData.subject.trim());
-      web3FormData.append("message", formData.message.trim());
-      web3FormData.append("redirect", "http://localhost:5173/contact");
-
+      web3FormData.append("access_key", import.meta.env.VITE_WEB3FORMS_KEY);
+      web3FormData.append("from_name", formData.name);
+      web3FormData.append("from_email", formData.email);
+      web3FormData.append("phone", formData.phone);
+      web3FormData.append("subject", formData.subject);
+      web3FormData.append("message", formData.message);
+      web3FormData.append(
+        "redirect",
+        "https://yourdomain.com/contact" // replace with production URL
+      );
 
       const response = await fetch("https://api.web3forms.com/submit", {
         method: "POST",
@@ -115,21 +109,13 @@ const Contact = () => {
 
       const result = await response.json();
 
-      if (!result.success) {
-        throw new Error(result.message || "Failed to send email");
-      }
+      if (!result.success) throw new Error(result.message || "Failed to send email");
 
       toast.success("Message sent successfully! We'll get back to you soon.");
 
-      setFormData({
-        name: "",
-        email: "",
-        phone: "",
-        subject: "",
-        message: "",
-      });
+      // Reset form
+      setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
       setErrors({});
-
     } catch (error) {
       console.error(error);
       toast.error("Failed to send message. Please try again.");
@@ -142,19 +128,24 @@ const Contact = () => {
     <div className="min-h-screen">
       <Navbar />
       <main>
+        {/* Hero Section */}
         <section className="pt-32 pb-20 bg-primary text-primary-foreground">
           <div className="container mx-auto px-4 text-center">
             <div className="flex items-center justify-center gap-2 mb-4">
               <Leaf className="h-6 w-6" />
               <span className="text-sm font-semibold uppercase tracking-wider">Contact Us</span>
             </div>
-            <h1 className="text-5xl md:text-6xl font-bold mb-6">Ready to Transform Your Supply Chain?</h1>
+            <h1 className="text-5xl md:text-6xl font-bold mb-6">
+              Ready to Transform Your Supply Chain?
+            </h1>
             <p className="text-xl max-w-3xl mx-auto text-primary-foreground/90">
-              Join the hyperlocal revolution. Partner with FreshRoute Direct for faster, fresher, and more efficient produce delivery
+              Join the hyperlocal revolution. Partner with FreshRoute Direct for faster, fresher,
+              and more efficient produce delivery
             </p>
           </div>
         </section>
 
+        {/* Contact Info & Form */}
         <section className="py-20">
           <div className="container mx-auto px-4">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
@@ -179,16 +170,14 @@ const Contact = () => {
                   <Mail className="h-8 w-8 text-primary-foreground" />
                 </div>
                 <h3 className="text-xl font-bold mb-2">Email Us</h3>
-                <p className="text-muted-foreground">Contact@freshroutedirect.com</p>
+                <p className="text-muted-foreground">contact@freshroute.com</p>
               </Card>
             </div>
 
+            {/* Contact Form */}
             <Card className="p-8 max-w-3xl mx-auto">
               <h2 className="text-3xl font-bold mb-6">Request a Partnership Discussion</h2>
-
-              {/* FIX: Added real form wrapper */}
               <form onSubmit={handleSubmit} className="space-y-6">
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium mb-2">
@@ -270,7 +259,7 @@ const Contact = () => {
 
                 <div>
                   <label className="block text-sm font-medium mb-2">
-                    Message * <span className="text-xs text-muted-foreground">({formData.message.length}/5000)</span>
+                    Message * <span className="text-xs text-muted-foreground">(5-5000 characters)</span>
                   </label>
                   <Textarea
                     value={formData.message}
@@ -289,7 +278,6 @@ const Contact = () => {
                   <p className="text-xs text-muted-foreground mt-1">Minimum 10 characters required</p>
                 </div>
 
-                {/* FIX: Submit button inside form */}
                 <Button
                   type="submit"
                   size="lg"

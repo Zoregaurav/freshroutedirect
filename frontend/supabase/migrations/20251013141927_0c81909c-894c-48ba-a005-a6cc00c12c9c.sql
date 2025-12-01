@@ -1,6 +1,9 @@
+-- Enable UUID generation
+-- CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
 -- Create contact submissions table
 CREATE TABLE IF NOT EXISTS public.contact_submissions (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  -- id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT NOT NULL,
   email TEXT NOT NULL,
   phone TEXT,
@@ -19,11 +22,11 @@ CREATE POLICY "Anyone can submit contact form"
   TO public
   WITH CHECK (true);
 
--- Create policy to allow admins to view all submissions (for future admin panel)
+-- Allow service_role to view submissions (admin panel)
 CREATE POLICY "Service role can view all submissions"
   ON public.contact_submissions
   FOR SELECT
-  TO authenticated
+  TO service_role
   USING (true);
 
 -- Create products table
@@ -39,10 +42,8 @@ CREATE TABLE IF NOT EXISTS public.products (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- Enable Row Level Security
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 
--- Create policy to allow anyone to view products
 CREATE POLICY "Anyone can view products"
   ON public.products
   FOR SELECT
@@ -63,17 +64,15 @@ CREATE TABLE IF NOT EXISTS public.blog_posts (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- Enable Row Level Security
 ALTER TABLE public.blog_posts ENABLE ROW LEVEL SECURITY;
 
--- Create policy to allow anyone to view published blog posts
 CREATE POLICY "Anyone can view blog posts"
   ON public.blog_posts
   FOR SELECT
   TO public
   USING (true);
 
--- Insert sample products
+-- Sample Products
 INSERT INTO public.products (title, description, category, price, in_stock) VALUES
 ('Organic Vegetable Box', 'Farm-fresh organic vegetables harvested daily', 'Fresh Vegetables', 24.99, true),
 ('Seasonal Fruit Basket', 'Handpicked seasonal fruits bursting with flavor', 'Fresh Fruits', 32.99, true),
@@ -82,11 +81,11 @@ INSERT INTO public.products (title, description, category, price, in_stock) VALU
 ('Berry Collection', 'Fresh organic strawberries, blueberries, and raspberries', 'Fresh Fruits', 28.99, true),
 ('Root Vegetable Pack', 'Organic carrots, beets, and potatoes', 'Fresh Vegetables', 22.99, true);
 
--- Insert sample blog posts
+-- Sample Blog Posts
 INSERT INTO public.blog_posts (title, content, excerpt, author, category) VALUES
-('10 Benefits of Organic Farming for the Environment', 'Organic farming is more than just a method of agriculture; it is a philosophy that prioritizes the health of our planet...', 'Discover how organic farming practices contribute to a healthier planet and sustainable future for all.', 'John Smith', 'Sustainability'),
-('Seasonal Guide: What to Plant in Spring', 'Spring is the season of renewal and growth in the garden. As temperatures rise and days lengthen, it is the perfect time...', 'A comprehensive guide to spring planting, including the best crops and timing for optimal growth.', 'Emily Green', 'Farming Tips'),
-('The Rise of Regenerative Agriculture', 'Regenerative agriculture represents a paradigm shift in how we think about farming and land management...', 'Exploring how regenerative practices are transforming modern farming and restoring soil health.', 'Michael Chen', 'Innovation'),
-('How to Start Your Own Organic Garden', 'Starting an organic garden can be a rewarding journey that connects you with nature and provides fresh, healthy produce...', 'Step-by-step instructions for beginners looking to grow their own organic vegetables at home.', 'Sarah Johnson', 'How-To'),
-('Understanding Soil Health and Nutrition', 'Healthy soil is the foundation of successful organic farming. It provides plants with essential nutrients...', 'Learn about the importance of soil health and how to maintain nutrient-rich soil naturally.', 'David Brown', 'Education'),
-('Farm-to-Table: Reducing Food Miles', 'The farm-to-table movement has gained significant momentum as more people recognize the benefits of eating locally...', 'The environmental and health benefits of sourcing food locally from nearby organic farms.', 'Emma Davis', 'Sustainability');
+('10 Benefits of Organic Farming for the Environment', 'Organic farming is more than just a method...', 'Discover how organic farming practices...', 'John Smith', 'Sustainability'),
+('Seasonal Guide: What to Plant in Spring', 'Spring is the season of renewal...', 'A comprehensive guide to spring planting...', 'Emily Green', 'Farming Tips'),
+('The Rise of Regenerative Agriculture', 'Regenerative agriculture represents...', 'Exploring how regenerative practices...', 'Michael Chen', 'Innovation'),
+('How to Start Your Own Organic Garden', 'Starting an organic garden...', 'Step-by-step instructions...', 'Sarah Johnson', 'How-To'),
+('Understanding Soil Health and Nutrition', 'Healthy soil is the foundation...', 'Learn about the importance of soil health...', 'David Brown', 'Education'),
+('Farm-to-Table: Reducing Food Miles', 'The farm-to-table movement...', 'The environmental and health benefits...', 'Emma Davis', 'Sustainability');
